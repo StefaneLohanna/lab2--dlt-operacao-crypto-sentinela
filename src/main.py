@@ -1,7 +1,10 @@
 import paho.mqtt.client as mqtt
 import json
-from key_manager import carregar_chaves, salvar_identidade, load_rsa_private_key, load_ecdsa_pub_key
+import hashlib
+from key_manager import carregar_chaves, carregar_identidades, salvar_identidade, load_rsa_private_key, load_ecdsa_pub_key
 from mensagem_segura import processar_pacote
+from utils import verificar_assinatura
+from revogacao_manager import adicionar_revogada, esta_revogada
 
 
 BROKER = "broker.hivemq.com"
@@ -46,27 +49,19 @@ def on_connect(client, userdata, flags, rc):
         print(f"Inscrito em {topico}")
 
 
-def receber_mensagem_segura(
-    pacote
-):
+def receber_mensagem_segura(pacote):
 
-    with open(
-        "identidades.json",
-        "r",
-        encoding="utf-8"
-    ) as f:
-
-        identidades = json.load(f)
+    identidades = carregar_identidades()
 
     remetente = pacote["id_unidade"]
 
-    if remetente not in identidades:
+    if remetente not in identidades or esta_revogada(remetente):
 
         raise Exception(
             f"Remetente revogado ou desconhecido: "
             f"{remetente}"
         )
-
+    
     chave_pub_ecdsa = (
         load_ecdsa_pub_key(
             identidades[remetente]["ecdsa"]
@@ -99,43 +94,24 @@ def on_message(client, userdata, msg):
 
 
 
-        if msg.topic.startswith(
-            "sisdef/broadcast/chaves/"
-        ):
+        if msg.topic.startswith("sisdef/broadcast/chaves/"):
 
-            dados = json.loads(
-                mensagem
-            )
+            dados = json.loads(mensagem)
+            if esta_revogada(dados["id_unidade"]):
+                print("Chave ignorada (revogada)")
+                return
 
             if "chave_publica_ecdsa" in dados:
 
-                chave_assinatura = (
-                    dados[
-                        "chave_publica_ecdsa"
-                    ]
-                )
+                chave_assinatura = (dados["chave_publica_ecdsa"])
 
-            elif "chave_publica_eddsa" in dados:
-
-                chave_assinatura = (
-                    dados[
-                        "chave_publica_eddsa"
-                    ]
-                )
 
             else:
 
-                print(
-                    "Mensagem ignorada"
-                )
-
+                print("Mensagem ignorada")
                 return
 
-            salvar_identidade(
-                dados["id_unidade"],
-                dados["chave_publica_rsa"],
-                chave_assinatura
-            )
+            salvar_identidade(dados["id_unidade"],dados["chave_publica_rsa"],chave_assinatura)
 
             print(
                 f"Identidade salva: "
@@ -147,58 +123,47 @@ def on_message(client, userdata, msg):
 
             dados = json.loads(mensagem)
 
-            unidade = dados["id_unidade"]
+            remetente = dados["remetente"]
 
-            with open(
-                "identidades.json",
-                "r",
-                encoding="utf-8"
-            ) as f:
+            identidades = carregar_identidades()
 
-                identidades = json.load(f)
+            if remetente not in identidades:
 
-            if unidade in identidades:
+                raise Exception("Remetente da revogação desconhecido")
 
-                del identidades[unidade]
+            chave_pub = load_ecdsa_pub_key(identidades[remetente]["ecdsa"])
 
-                with open(
-                    "identidades.json",
-                    "w",
-                    encoding="utf-8"
-                ) as f:
+            revogacao = dados["revogacao"]
 
-                    json.dump(
-                        identidades,
-                        f,
-                        indent=4
-                    )
+            hash_rev = hashlib.sha256(
+                json.dumps(
+                    revogacao,
+                    sort_keys=True
+                ).encode()
+            ).digest()
 
-                print(
-                    f"Identidade revogada: {unidade}"
-                )
+            assinatura = bytes.fromhex(dados["assinatura_b64"])
 
-            else:
+            assinatura_valida = verificar_assinatura(hash_rev, assinatura, chave_pub)
 
-                print(
-                    f"Unidade {unidade} nao encontrada"
-                )
+            if not assinatura_valida:
+
+                raise Exception("Assinatura da revogação inválida")
+
+            unidade = revogacao["id_unidade"]
+
+            adicionar_revogada(unidade)
+
+            print(f"Unidade revogada: {unidade}")
 
 
         else:
 
-            pacote = json.loads(
-                mensagem
-            )
+            pacote = json.loads(mensagem)
 
-            texto = (
-                receber_mensagem_segura(
-                    pacote
-                )
-            )
+            texto = (receber_mensagem_segura(pacote))
 
-            print(
-                "\nMENSAGEM SEGURA RECEBIDA"
-            )
+            print("\nMENSAGEM SEGURA RECEBIDA")
 
             print(
                 f"De: "
@@ -212,10 +177,7 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
 
-        print(
-            "ERRO:",
-            e
-        )
+        print("ERRO:",e)
 
 
 client = mqtt.Client()

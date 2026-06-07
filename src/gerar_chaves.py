@@ -12,15 +12,9 @@ def criar_chaves():
     ecdsa_priv = gerar_ecdsa()
     ecdsa_pub = ecdsa_priv.public_key()
 
-    rsa_dict = export_keys_as_string(
-        rsa_priv,
-        rsa_pub
-    )
+    rsa_dict = export_keys_as_string(rsa_priv, rsa_pub)
 
-    ecdsa_dict = export_keys_as_string(
-        ecdsa_priv,
-        ecdsa_pub
-    )
+    ecdsa_dict = export_keys_as_string(ecdsa_priv, ecdsa_pub)
 
     dados = {
         "rsa": rsa_dict,
@@ -38,8 +32,6 @@ def criar_chaves():
             arquivo,
             indent=4
         )
-
-    print("Chaves criadas com sucesso")
 
 
 if __name__ == "__main__":

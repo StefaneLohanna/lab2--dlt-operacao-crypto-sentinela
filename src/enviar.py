@@ -1,8 +1,6 @@
 import paho.mqtt.client as mqtt
 
-from mensageria import (
-    enviar_mensagem_segura
-)
+from mensageria import enviar_mensagem_segura
 
 BROKER = "broker.hivemq.com"
 
@@ -16,11 +14,10 @@ client.connect(
 
 client.loop_start()
 
-enviar_mensagem_segura(
-    client,
-    "ut-bravo",
-    "Mensagem secreta do Echo"
-)
+unidade_destino = "ut-bravo"
+mensagem = 'Mensagem secreta do Echo'
+
+enviar_mensagem_segura(client, unidade_destino, mensagem)
 
 client.loop_stop()
 client.disconnect()

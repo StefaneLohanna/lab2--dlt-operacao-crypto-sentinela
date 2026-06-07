@@ -7,16 +7,11 @@ from cryptography.hazmat.primitives import hashes
 
 
 def gerar_rsa():
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048
-    )
-
+    return rsa.generate_private_key(public_exponent=65537,key_size=2048)
 
 def gerar_ecdsa():
-    return ec.generate_private_key(
-        ec.SECP256R1()
-    )
+    return ec.generate_private_key(ec.SECP256R1())
+
 
 
 def criptografar_aes(mensagem: bytes):
@@ -27,33 +22,18 @@ def criptografar_aes(mensagem: bytes):
 
     nonce = os.urandom(12)
 
-    ciphertext = aes.encrypt(
-        nonce,
-        mensagem,
-        None
-    )
+    ciphertext = aes.encrypt(nonce,mensagem,None)
 
     return chave, nonce, ciphertext
 
 
-def descriptografar_aes(
-    chave,
-    nonce,
-    ciphertext
-):
+def descriptografar_aes(chave, nonce, ciphertext):
 
     aes = AESGCM(chave)
 
-    return aes.decrypt(
-        nonce,
-        ciphertext,
-        None
-    )
+    return aes.decrypt(nonce, ciphertext, None)
 
-def cifrar_chave_sessao(
-    chave_sessao,
-    chave_publica
-):
+def cifrar_chave_sessao(chave_sessao, chave_publica):
 
     return chave_publica.encrypt(
         chave_sessao,
@@ -65,10 +45,7 @@ def cifrar_chave_sessao(
     )
 
 
-def decifrar_chave_sessao(
-    chave_cifrada,
-    chave_privada
-):
+def decifrar_chave_sessao(chave_cifrada, chave_privada):
 
     return chave_privada.decrypt(
         chave_cifrada,
@@ -80,25 +57,25 @@ def decifrar_chave_sessao(
     )
 
 
-def assinar(hash_msg, chave_privada):
+def assinar(mensagem, chave_privada):
 
     return chave_privada.sign(
-        hash_msg,
-        ec.ECDSA(hashes.SHA256())
+        mensagem,
+        ec.ECDSA(
+            hashes.SHA256()
+        )
     )
 
-def verificar_assinatura(
-    hash_msg,
-    assinatura,
-    chave_publica
-):
+def verificar_assinatura(mensagem, assinatura,chave_publica):
 
     try:
 
         chave_publica.verify(
             assinatura,
-            hash_msg,
-            ec.ECDSA(hashes.SHA256())
+            mensagem,
+            ec.ECDSA(
+                hashes.SHA256()
+            )
         )
 
         return True
@@ -106,68 +83,3 @@ def verificar_assinatura(
     except:
         return False
     
-def processar_pacote(
-    pacote,
-    chave_privada_rsa,
-    chave_publica_ecdsa
-):
-
-    ciphertext = base64.b64decode(
-        pacote["ciphertext_b64"]
-    )
-
-    tag = base64.b64decode(
-        pacote["tag_autenticacao_b64"]
-    )
-
-    nonce = base64.b64decode(
-        pacote["nonce_b64"]
-    )
-
-    chave_sessao_cifrada = (
-        base64.b64decode(
-            pacote["chave_sessao_cifrada_b64"]
-        )
-    )
-
-    assinatura = base64.b64decode(
-        pacote["assinatura_b64"]
-    )
-
-    chave_sessao = (
-        decifrar_chave_sessao(
-            chave_sessao_cifrada,
-            chave_privada_rsa
-        )
-    )
-
-    ciphertext_completo = (
-        ciphertext + tag
-    )
-
-    mensagem_bytes = (
-        descriptografar_aes(
-            chave_sessao,
-            nonce,
-            ciphertext_completo
-        )
-    )
-
-    hash_msg = hashlib.sha256(
-        mensagem_bytes
-    ).digest()
-
-    assinatura_valida = (
-        verificar_assinatura(
-            hash_msg,
-            assinatura,
-            chave_publica_ecdsa
-        )
-    )
-
-    if not assinatura_valida:
-        raise Exception(
-            "Assinatura inválida"
-        )
-
-    return mensagem_bytes.decode()

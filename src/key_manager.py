@@ -4,6 +4,21 @@ import json
 import os
 import base64
 
+def carregar_identidades():
+
+    arquivo = "identidades.json"
+
+    if not os.path.exists(arquivo):
+        return {}
+
+    with open(
+        arquivo,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        return json.load(f)
+
 def export_keys_as_string(private_key, public_key):
     _priv_bytes = private_key.private_bytes(
         encoding=serialization.Encoding.DER,
@@ -51,11 +66,7 @@ def existe_chaves():
     )
 
 
-def salvar_identidade(
-    id_unidade,
-    rsa_pub,
-    ecdsa_pub
-):
+def salvar_identidade(id_unidade, rsa_pub, ecdsa_pub):
 
     import json
     import os
