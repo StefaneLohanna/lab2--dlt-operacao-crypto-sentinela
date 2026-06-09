@@ -1,3 +1,4 @@
+from desafio_oraculo import solicitar_desafio
 import paho.mqtt.client as mqtt
 import json
 import hashlib
@@ -47,7 +48,8 @@ def on_connect(client, userdata, flags, rc):
     for topico in TOPICOS:
         client.subscribe(topico)
         print(f"Inscrito em {topico}")
-
+    
+    solicitar_desafio(client, ID_UNIDADE)
 
 def receber_mensagem_segura(pacote):
 
