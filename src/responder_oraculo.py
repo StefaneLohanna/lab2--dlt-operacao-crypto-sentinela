@@ -15,7 +15,7 @@ from desafio_oraculo import enviar_resposta_oraculo
 BROKER = "broker.hivemq.com"
 ID_UNIDADE = "ut-echo"
 
-RESPOSTA = "25"
+RESPOSTA = "16"
 
 
 def main():

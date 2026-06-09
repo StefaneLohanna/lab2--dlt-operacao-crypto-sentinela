@@ -39,7 +39,7 @@ def main():
         })
     )
 
-    time.sleep(5)
+    time.sleep(30)
 
     client.loop_stop()
     client.disconnect()
