@@ -5,7 +5,6 @@ import os
 import base64
 
 def carregar_identidades():
-
     arquivo = "identidades.json"
 
     if not os.path.exists(arquivo):
@@ -47,7 +46,6 @@ def load_ecdsa_pub_key(b64_str):
     return serialization.load_der_public_key(key_bytes)
 
 def carregar_chaves():
-
     if not os.path.exists("minhas_chaves.json"):
         return None
 
@@ -60,14 +58,12 @@ def carregar_chaves():
         return json.load(arquivo)
     
 def existe_chaves():
-
     return os.path.exists(
         "minhas_chaves.json"
     )
 
 
 def salvar_identidade(id_unidade, rsa_pub, ecdsa_pub):
-
     import json
     import os
 
@@ -106,7 +102,6 @@ def salvar_identidade(id_unidade, rsa_pub, ecdsa_pub):
 
 
 def load_rsa_private_key(b64_str):
-
     key_bytes = base64.b64decode(
         b64_str
     )
@@ -117,7 +112,6 @@ def load_rsa_private_key(b64_str):
     )
 
 def load_ecdsa_private_key(b64_str):
-
     key_bytes = base64.b64decode(
         b64_str
     )
@@ -128,7 +122,6 @@ def load_ecdsa_private_key(b64_str):
     )
 
 def carregar_rsa_privada():
-
     dados = carregar_chaves()
 
     return load_rsa_private_key(
@@ -137,7 +130,6 @@ def carregar_rsa_privada():
 
 
 def carregar_ecdsa_privada():
-
     dados = carregar_chaves()
 
     return load_ecdsa_private_key(

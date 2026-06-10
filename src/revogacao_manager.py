@@ -5,7 +5,6 @@ ARQUIVO = "revogadas.json"
 
 
 def carregar_revogadas():
-
     if not os.path.exists(ARQUIVO):
         return []
 
@@ -19,7 +18,6 @@ def carregar_revogadas():
 
 
 def adicionar_revogada(id_unidade):
-
     revogadas = carregar_revogadas()
 
     if id_unidade not in revogadas:
@@ -39,7 +37,6 @@ def adicionar_revogada(id_unidade):
 
 
 def esta_revogada(id_unidade):
-
     revogadas = carregar_revogadas()
 
     return id_unidade in revogadas

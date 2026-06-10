@@ -6,10 +6,6 @@ TOPICO_ORACULO = "sisdef/direto/oraculo"
 
 
 def solicitar_desafio(client, id_unidade):
-    """
-    Solicita um novo desafio ao Oráculo.
-    """
-
     mensagem = {
         "id_unidade": id_unidade,
         "cmd": "desafio"
@@ -29,12 +25,6 @@ def criar_pacote_oraculo(
     ecdsa_privada,
     id_unidade
 ):
-    """
-    Cria o pacote de resposta para o Oráculo.
-
-    O conteúdo protegido deve ser apenas a string da resposta,
-    conforme especificado no PDF.
-    """
 
     print("\nConteúdo que será protegido:")
     print(repr(str(resposta)))
@@ -58,9 +48,6 @@ def enviar_resposta_oraculo(
     rsa_publica_oraculo,
     ecdsa_privada
 ):
-    """
-    Publica a resposta para o Oráculo.
-    """
 
     pacote = criar_pacote_oraculo(
         resposta,

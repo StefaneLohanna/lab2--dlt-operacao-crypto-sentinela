@@ -19,7 +19,6 @@ RESPOSTA = "16"
 
 
 def main():
-
     resposta = RESPOSTA
 
     identidades = carregar_identidades()

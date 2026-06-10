@@ -1,10 +1,11 @@
 import base64
 
+from key_manager import carregar_chaves, carregar_identidades, load_ecdsa_pub_key, load_rsa_private_key
+from revogacao_manager import esta_revogada
 from utils import criptografar_aes, cifrar_chave_sessao, assinar, decifrar_chave_sessao, descriptografar_aes, verificar_assinatura
 
 
 def criar_pacote(mensagem_texto, chave_rsa_destino, chave_privada_ecdsa,remetente):
-
     mensagem_bytes = mensagem_texto.encode()
 
     assinatura = assinar(mensagem_bytes, chave_privada_ecdsa)
@@ -39,7 +40,6 @@ def criar_pacote(mensagem_texto, chave_rsa_destino, chave_privada_ecdsa,remetent
     return pacote
 
 def processar_pacote(pacote, chave_privada_rsa, chave_publica_ecdsa):
-
     ciphertext = base64.b64decode(pacote["ciphertext_b64"])
 
     tag = base64.b64decode(pacote["tag_autenticacao_b64"])
@@ -63,3 +63,36 @@ def processar_pacote(pacote, chave_privada_rsa, chave_publica_ecdsa):
         raise Exception("Assinatura inválida")
 
     return mensagem_bytes.decode()
+
+
+def receber_mensagem_segura(pacote):
+    identidades = carregar_identidades()
+
+    remetente = pacote["id_unidade"]
+
+    if remetente not in identidades or esta_revogada(remetente):
+
+        raise Exception(
+            f"Remetente revogado ou desconhecido: "
+            f"{remetente}"
+        )
+    
+    chave_pub_ecdsa = (
+        load_ecdsa_pub_key(
+            identidades[remetente]["ecdsa"]
+        )
+    )
+
+    minhas_chaves = carregar_chaves()
+
+    rsa_privada = (
+        load_rsa_private_key(
+            minhas_chaves["rsa"]["private_key"]
+        )
+    )
+
+    return processar_pacote(
+        pacote,
+        rsa_privada,
+        chave_pub_ecdsa
+    )

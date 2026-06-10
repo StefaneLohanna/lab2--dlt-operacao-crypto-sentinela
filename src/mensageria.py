@@ -7,7 +7,6 @@ from revogacao_manager import esta_revogada
 
 
 def enviar_mensagem_segura(client, destino, texto):
-
     identidades = carregar_identidades()
     if destino not in identidades:
         print(

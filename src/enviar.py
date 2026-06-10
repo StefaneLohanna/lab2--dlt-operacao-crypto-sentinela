@@ -14,8 +14,8 @@ client.connect(
 
 client.loop_start()
 
-unidade_destino = "ut-bravo"
-mensagem = 'Mensagem secreta do Echo'
+unidade_destino = "ut-alfa"
+mensagem = 'Mensagem secreta de Echo'
 
 enviar_mensagem_segura(client, unidade_destino, mensagem)
 

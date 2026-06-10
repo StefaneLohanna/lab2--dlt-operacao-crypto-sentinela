@@ -5,7 +5,6 @@ from key_manager import export_keys_as_string
 
 
 def criar_chaves():
-
     rsa_priv = gerar_rsa()
     rsa_pub = rsa_priv.public_key()
 
